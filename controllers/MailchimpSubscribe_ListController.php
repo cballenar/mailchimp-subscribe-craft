@@ -46,45 +46,41 @@ class MailchimpSubscribe_ListController extends BaseController {
         
         if ($api->errorCode) { // an api error occured 
 
-          // Respond appropriately to Ajax Requests
-          if (craft()->request->isAjaxRequest())
-          {
-            $this->returnJson(array(
-              'success' => false,
-              'errorCode' => $api->errorCode,
-              'message' => 'An API error has occured: ' . $api->errorCode . ' - ' . $api->errorMessage,
-              'values' => array(
-                'email' => $email,
-                'vars' => $vars
-              )
-            ));
-          }
-          
-          craft()->urlManager->setRouteVariables(array(
-            'mailchimpSubscribe' => array(
-              'success' => false,
-              'errorCode' => $api->errorCode, // set errorCode to match actual mailchimp api error, see http://apidocs.mailchimp.com/api/1.3/exceptions.field.php
-              'message' => 'An API error occured: ' . $api->errorCode . ' - ' . $api->errorMessage,
-              'values' => array(
-                'email' => $email,
-                'vars' => $vars
-              )
+          $data = array(
+            'success' => false,
+            'errorCode' => $api->errorCode, // set errorCode to match actual mailchimp api error, see http://apidocs.mailchimp.com/api/1.3/exceptions.field.php
+            'message' => 'An API error occured: ' . $api->errorCode . ' - ' . $api->errorMessage,
+            'values' => array(
+              'email' => $email,
+              'vars' => $vars
             )
-          ));
-          
-        } else { // list subscribe was successful
+          );
 
           // Respond appropriately to Ajax Requests
           if (craft()->request->isAjaxRequest())
           {
-            return $this->returnJson(array(
+            $this->returnJson($data);
+          }
+          
+          craft()->urlManager->setRouteVariables(array(
+            'mailchimpSubscribe' => $data
+          ));
+          
+        } else { // list subscribe was successful
+
+          $data = array(
               'success' => true,
               'errorCode' => 1,
               'values' => array(
                 'email' => $email,
                 'vars' => $vars
               )
-            ));
+            );
+
+          // Respond appropriately to Ajax Requests
+          if (craft()->request->isAjaxRequest())
+          {
+            return $this->returnJson($data);
           }
 
 
@@ -93,75 +89,55 @@ class MailchimpSubscribe_ListController extends BaseController {
             $this->redirectToPostedUrl();
           } else {
             craft()->urlManager->setRouteVariables(array(
-              'mailchimpSubscribe' => array(
-                'success' => true,
-                'errorCode' => 1,
-                'message' => '',
-                'values' => array(
-                  'email' => $email,
-                  'vars' => $vars
-                )
-              )
+              'mailchimpSubscribe' => $data
             ));
           }
         }
         
       } else { // error, no api key or list id
 
+        $data = array(
+          'success' => false,
+          'errorCode' => 2000,
+          'message' => 'API Key or List ID not supplied. Check your settings.',
+          'values' => array(
+            'email' => $email,
+            'vars' => $vars
+          )
+        );
+
         // Respond appropriately to Ajax Requests
         if (craft()->request->isAjaxRequest())
         {
-          $this->returnJson(array(
-            'success' => false,
-            'errorCode' => 2000,
-            'message' => 'API Key or List ID not supplied. Check your settings.',
-            'values' => array(
-              'email' => $email,
-              'vars' => $vars
-            )
-          ));
+          $this->returnJson($data);
         }
         
         craft()->urlManager->setRouteVariables(array(
-          'mailchimpSubscribe' => array(
-            'success' => false,
-            'errorCode' => 2000,
-            'message' => 'API Key or List ID not supplied. Check your settings.',
-            'values' => array(
-              'email' => $email,
-              'vars' => $vars
-            )
-          )
+          'mailchimpSubscribe' => $data
         ));
         
       }
       
     } else { // error, no email or invalid
 
+      $data = array(
+        'success' => false,
+        'errorCode' => 1000,
+        'message' => 'Email invalid',
+        'values' => array(
+          'email' => $email,
+          'vars' => $vars
+        )
+      );
+
       // Respond appropriately to Ajax Requests
       if (craft()->request->isAjaxRequest())
       {
-        $this->returnJson(array(
-          'success' => false,
-          'errorCode' => 1000,
-          'message' => 'Email invalid',
-          'values' => array(
-            'email' => $email,
-            'vars' => $vars
-          )
-        ));
+        $this->returnJson($data);
       }
       
       craft()->urlManager->setRouteVariables(array(
-        'mailchimpSubscribe' => array(
-          'success' => false,
-          'errorCode' => 1000,
-          'message' => 'Email invalid',
-          'values' => array(
-            'email' => $email,
-            'vars' => $vars
-          )
-        )
+        'mailchimpSubscribe' => $data
       ));
     }
     
